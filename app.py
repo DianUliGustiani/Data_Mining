@@ -3,34 +3,31 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.express as px
-from mlxtend.frequent_patterns import fpgrowth, association_rules
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
+from zipfile import ZipFile
+from io import BytesIO
+import gdown
 import os
 
-# Fungsi untuk autentikasi dan unduhan
-def download_file_from_google_drive(file_id, output_file):
-    gauth = GoogleAuth()
-    gauth.LocalWebserverAuth()  # Buat autentikasi lokal
-    drive = GoogleDrive(gauth)
-
-    file = drive.CreateFile({'id': file_id})
-    file.GetContentFile(output_file)
-
 # ID Google Drive dan nama file output
-file_id = '1sMhUWsjie6o1LIWLybOGGr5X8AnfZzf6'
-output_file = 'transaction_data_encoded.csv'
+file_id = '1eM_QYD6MSu7-heV46186xxtkNXoEU49c'
+url = f'https://drive.google.com/uc?export=download&id={file_id}'
 
 # Load dataset
 @st.cache_data
-def load_data(file_id, output_file):
+def load_data(file_id):
     try:
         st.write(f"Downloading data from Google Drive file ID: {file_id}")
-        download_file_from_google_drive(file_id, output_file)
+        output_zip = 'dataset.zip'
+        gdown.download(url, output_zip, quiet=False, use_cookies=False)
 
-        if os.path.exists(output_file):
-            st.write("Reading downloaded CSV file")
-            df = pd.read_csv(output_file)
+        if os.path.exists(output_zip):
+            st.write("Extracting dataset from zip file")
+            with ZipFile(output_zip, 'r') as zip_ref:
+                zip_ref.extractall('data/')
+
+            # Assuming your dataset is CSV inside the zip file
+            csv_file = 'data/dataset.csv'
+            df = pd.read_csv(csv_file)
             st.write(f"Data loaded successfully with shape {df.shape}")
             return df
         else:
@@ -38,13 +35,14 @@ def load_data(file_id, output_file):
             return None
     except Exception as e:
         st.error(f"Error loading data: {e}")
-        st.write(f"Error details: {e}")
         return None
 
-df_encoded = load_data(file_id, output_file)
+
+df_encoded = load_data(file_id)
 
 if df_encoded is not None and not df_encoded.empty:
     try:
+        # Continue with your data analysis and visualization
         st.write("Applying FP-Growth algorithm")
         # Apply FP-Growth Algorithm
         frequent_itemsets = fpgrowth(df_encoded, min_support=0.007, use_colnames=True)
@@ -78,7 +76,8 @@ if df_encoded is not None and not df_encoded.empty:
 
             st.header('Scatter Plot: Support vs. Confidence')
             fig, ax = plt.subplots(figsize=(12, 8))
-            sns.scatterplot(x="support", y="confidence", size="lift", data=rules, hue="lift", palette="viridis", sizes=(20, 200), ax=ax)
+            sns.scatterplot(x="support", y="confidence", size="lift", data=rules, hue="lift", palette="viridis",
+                            sizes=(20, 200), ax=ax)
             plt.title('Market Basket Analysis - Support vs. Confidence (Size = Lift)')
             plt.xlabel('Support')
             plt.ylabel('Confidence')
