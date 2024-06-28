@@ -13,22 +13,27 @@ url = f'https://drive.google.com/uc?export=download&id={file_id}'
 @st.cache_data
 def load_data(url):
     try:
+        st.write(f"Loading data from {url}")
         df = pd.read_csv(url)
+        st.write(f"Data loaded successfully with shape {df.shape}")
         return df
     except Exception as e:
         st.error(f"Error loading data: {e}")
+        st.write(f"Error details: {e}")
         return None
 
 df_encoded = load_data(url)
 
 if df_encoded is not None and not df_encoded.empty:
     try:
+        st.write("Applying FP-Growth algorithm")
         # Apply FP-Growth Algorithm
         frequent_itemsets = fpgrowth(df_encoded, min_support=0.007, use_colnames=True)
 
         if frequent_itemsets.empty:
             st.error("No frequent itemsets found. Please adjust the minimum support or check the data.")
         else:
+            st.write("Generating association rules")
             # Generate the association rules
             rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.5)
 
