@@ -1,4 +1,4 @@
-gdown
+google_drive_downloader
 streamlit
 pandas
 seaborn
