@@ -4,7 +4,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.express as px
 from mlxtend.frequent_patterns import fpgrowth, association_rules
-import requests
+import gdown
+import os
 
 # URL Google Drive dengan format yang benar
 file_id = '1sMhUWsjie6o1LIWLybOGGr5X8AnfZzf6'
@@ -14,18 +15,18 @@ url = f'https://drive.google.com/uc?export=download&id={file_id}'
 @st.cache_data
 def load_data(url):
     try:
-        st.write(f"Loading data from {url}")
+        st.write(f"Downloading data from {url}")
+        output = 'transaction_data_encoded.csv'
+        gdown.download(url, output, quiet=False)
         
-        # Unduh file CSV dan tampilkan beberapa baris pertama
-        response = requests.get(url)
-        csv_data = response.content.decode('utf-8')
-        st.write("Sample of the downloaded CSV data:")
-        st.text(csv_data.split('\n')[:10])  # Menampilkan 10 baris pertama
-        
-        # Baca data ke dalam DataFrame
-        df = pd.read_csv(url)
-        st.write(f"Data loaded successfully with shape {df.shape}")
-        return df
+        if os.path.exists(output):
+            st.write("Reading downloaded CSV file")
+            df = pd.read_csv(output)
+            st.write(f"Data loaded successfully with shape {df.shape}")
+            return df
+        else:
+            st.error("Failed to download the file.")
+            return None
     except Exception as e:
         st.error(f"Error loading data: {e}")
         st.write(f"Error details: {e}")
