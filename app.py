@@ -4,24 +4,33 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.express as px
 from mlxtend.frequent_patterns import fpgrowth, association_rules
-import gdown
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
 import os
 
-# URL Google Drive dengan format yang benar
+# Fungsi untuk autentikasi dan unduhan
+def download_file_from_google_drive(file_id, output_file):
+    gauth = GoogleAuth()
+    gauth.LocalWebserverAuth()  # Buat autentikasi lokal
+    drive = GoogleDrive(gauth)
+
+    file = drive.CreateFile({'id': file_id})
+    file.GetContentFile(output_file)
+
+# ID Google Drive dan nama file output
 file_id = '1sMhUWsjie6o1LIWLybOGGr5X8AnfZzf6'
-url = f'https://drive.google.com/uc?export=download&id={file_id}'
+output_file = 'transaction_data_encoded.csv'
 
 # Load dataset
 @st.cache_data
-def load_data(url):
+def load_data(file_id, output_file):
     try:
-        st.write(f"Downloading data from {url}")
-        output = 'transaction_data_encoded.csv'
-        gdown.download(url, output, quiet=False)
-        
-        if os.path.exists(output):
+        st.write(f"Downloading data from Google Drive file ID: {file_id}")
+        download_file_from_google_drive(file_id, output_file)
+
+        if os.path.exists(output_file):
             st.write("Reading downloaded CSV file")
-            df = pd.read_csv(output)
+            df = pd.read_csv(output_file)
             st.write(f"Data loaded successfully with shape {df.shape}")
             return df
         else:
@@ -32,7 +41,7 @@ def load_data(url):
         st.write(f"Error details: {e}")
         return None
 
-df_encoded = load_data(url)
+df_encoded = load_data(file_id, output_file)
 
 if df_encoded is not None and not df_encoded.empty:
     try:
