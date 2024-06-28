@@ -6,7 +6,7 @@ import plotly.express as px
 from mlxtend.frequent_patterns import fpgrowth, association_rules
 
 # URL Google Drive
-url = 'https://drive.google.com/file/d/1HiJwa4ZOyUWGn20LtrH_FdFzxZWWT-Ss/view?usp=sharing'
+url = 'https://drive.google.com/file/d/1sMhUWsjie6o1LIWLybOGGr5X8AnfZzf6/view?usp=sharing'
 
 # Load dataset
 @st.cache_data
