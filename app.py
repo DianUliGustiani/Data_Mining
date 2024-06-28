@@ -5,12 +5,11 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 from zipfile import ZipFile
 from io import BytesIO
-import gdown
+from google_drive_downloader import GoogleDriveDownloader as gdd
 import os
 
 # ID Google Drive dan nama file output
 file_id = '1eM_QYD6MSu7-heV46186xxtkNXoEU49c'
-url = f'https://drive.google.com/uc?export=download&id={file_id}'
 
 # Load dataset
 @st.cache_data
@@ -18,7 +17,7 @@ def load_data(file_id):
     try:
         st.write(f"Downloading data from Google Drive file ID: {file_id}")
         output_zip = 'dataset.zip'
-        gdown.download(url, output_zip, quiet=False, use_cookies=False)
+        gdd.download_file_from_google_drive(file_id=file_id, dest_path=output_zip, unzip=False)
 
         if os.path.exists(output_zip):
             st.write("Extracting dataset from zip file")
@@ -36,7 +35,6 @@ def load_data(file_id):
     except Exception as e:
         st.error(f"Error loading data: {e}")
         return None
-
 
 df_encoded = load_data(file_id)
 
@@ -76,8 +74,7 @@ if df_encoded is not None and not df_encoded.empty:
 
             st.header('Scatter Plot: Support vs. Confidence')
             fig, ax = plt.subplots(figsize=(12, 8))
-            sns.scatterplot(x="support", y="confidence", size="lift", data=rules, hue="lift", palette="viridis",
-                            sizes=(20, 200), ax=ax)
+            sns.scatterplot(x="support", y="confidence", size="lift", data=rules, hue="lift", palette="viridis", sizes=(20, 200), ax=ax)
             plt.title('Market Basket Analysis - Support vs. Confidence (Size = Lift)')
             plt.xlabel('Support')
             plt.ylabel('Confidence')
